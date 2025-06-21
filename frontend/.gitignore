@@ -1,0 +1,30 @@
+# Dependencies
+/node_modules
+
+# Build artifacts
+/dist
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE and editor directories
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Jest coverage
+/coverage
+
+# Optional fields in .npmrc
+.npmrc
