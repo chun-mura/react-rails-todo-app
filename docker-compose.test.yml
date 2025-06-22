@@ -1,0 +1,79 @@
+services:
+  # テスト用データベース
+  db-test:
+    image: postgres:15-alpine
+    container_name: todo-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: todo_app_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-test-data:/var/lib/postgresql/data
+
+  # テスト用バックエンド
+  backend-test:
+    build: ./backend
+    container_name: todo-backend-test
+    environment:
+      DB_HOST: db-test
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_PORT: 5432
+      RAILS_ENV: test
+      JWT_SECRET_KEY: test-secret-key
+    depends_on:
+      - db-test
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "
+        rails db:create db:migrate db:seed RAILS_ENV=test &&
+        rails server -b 0.0.0.0 -p 3001
+      "
+
+  # テスト用フロントエンド
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: todo-frontend-test
+    depends_on:
+      - backend-test
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      VITE_API_URL: http://backend-test:3001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # Playwrightテスト
+  playwright-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    container_name: todo-playwright-test
+    depends_on:
+      frontend-test:
+        condition: service_healthy
+      backend-test:
+        condition: service_started
+    environment:
+      PLAYWRIGHT_BASE_URL: http://frontend-test:3000
+    volumes:
+      - ./frontend/tests:/app/tests
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+
+volumes:
+  db-test-data:

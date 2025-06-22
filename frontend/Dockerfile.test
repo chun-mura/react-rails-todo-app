@@ -1,0 +1,20 @@
+# Playwrightテスト用Dockerfile
+FROM mcr.microsoft.com/playwright:v1.53.1
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# package.jsonとpackage-lock.jsonをコピー
+COPY package*.json ./
+
+# 依存関係をインストール
+RUN npm ci
+
+# ソースコードをコピー
+COPY . .
+
+# Playwrightブラウザをインストール
+RUN npx playwright install --with-deps
+
+# テスト実行コマンドを設定
+CMD ["npm", "run", "test:e2e"]

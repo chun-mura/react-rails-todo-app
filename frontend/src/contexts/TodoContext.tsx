@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import axios from 'axios';
+import axios from '../lib/axios';
 
 interface Todo {
   id: number;

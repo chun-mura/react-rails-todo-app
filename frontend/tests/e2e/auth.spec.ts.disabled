@@ -1,0 +1,72 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('認証機能', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('未認証時にログインページにリダイレクトされる', async ({ page }) => {
+    // 未認証状態でトップページにアクセス
+    await page.goto('/');
+
+    // フロントエンドの読み込みを待つ
+    await page.waitForLoadState('networkidle');
+
+    // ログインページにリダイレクトされることを確認
+    await expect(page).toHaveURL('/login');
+  });
+
+  test('ユーザー登録ができる', async ({ page }) => {
+    // 登録ページに移動
+    await page.goto('/register');
+    await page.waitForLoadState('networkidle');
+
+    // フォームに入力
+    await page.waitForSelector('#name');
+    await page.fill('#name', 'Test User');
+    await page.fill('#email', 'test@example.com');
+    await page.fill('#password', 'password123');
+
+    // 登録ボタンをクリック
+    await page.click('button[type="submit"]');
+
+    // 登録成功後、ログインページにリダイレクトされることを確認
+    await expect(page).toHaveURL('/login');
+  });
+
+  test('ログインができる', async ({ page }) => {
+    // ログインページに移動
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+
+    // フォームに入力
+    await page.waitForSelector('#email');
+    await page.fill('#email', 'test@example.com');
+    await page.fill('#password', 'password123');
+
+    // ログインボタンをクリック
+    await page.click('button[type="submit"]');
+
+    // ログイン成功後、トップページにリダイレクトされることを確認
+    await expect(page).toHaveURL('/');
+
+    // Todoリストが表示されることを確認
+    await expect(page.locator('h1')).toContainText('Todo List');
+  });
+
+  test('ログアウトができる', async ({ page }) => {
+    // ログイン状態でトップページにアクセス
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('#email');
+    await page.fill('#email', 'test@example.com');
+    await page.fill('#password', 'password123');
+    await page.click('button[type="submit"]');
+
+    // ログアウトボタンをクリック
+    await page.click('button:has-text("Logout")');
+
+    // ログアウト後、ログインページにリダイレクトされることを確認
+    await expect(page).toHaveURL('/login');
+  });
+});
