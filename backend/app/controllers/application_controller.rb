@@ -1,9 +1,5 @@
 class ApplicationController < ActionController::API
-  before_action :authenticate_user!
-
-  def health_check
-    render json: { status: 'ok' }
-  end
+  before_action :authenticate_user!, except: [:health]
 
   # ヘルスチェックエンドポイント
   def health
@@ -14,7 +10,10 @@ class ApplicationController < ActionController::API
 
   def authenticate_user!
     token = request.headers['Authorization']&.split(' ')&.last
-    return render json: { error: 'Token is missing' }, status: :unauthorized unless token
+    unless token
+      render json: { error: 'Token is missing' }, status: :unauthorized
+      return
+    end
 
     begin
       decoded = JWT.decode(token, ENV.fetch('JWT_SECRET_KEY'), true, { algorithm: 'HS256' })
@@ -22,6 +21,7 @@ class ApplicationController < ActionController::API
       @current_user = User.find(user_id)
     rescue JWT::DecodeError, ActiveRecord::RecordNotFound
       render json: { error: 'Invalid token' }, status: :unauthorized
+      return
     end
   end
 
