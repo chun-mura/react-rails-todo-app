@@ -1,5 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Node.jsの型定義を追加
+declare const process: {
+  env: {
+    CI?: string;
+    PLAYWRIGHT_BASE_URL?: string;
+  };
+};
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -16,7 +24,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: process.env.PLAYWRIGHT_BASE_URL ? {
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        } : undefined
+      },
     },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {

@@ -16,8 +16,13 @@ test.describe('認証機能', () => {
     // ログインボタンをクリック
     await page.click('button[type="submit"]');
 
-    // ログイン後の処理を待機
-    await page.waitForTimeout(10000);
+    // ログイン処理の完了を待機
+    await page.waitForResponse(response =>
+      response.url().includes('/auth/login') && response.status() === 200
+    );
+
+    // リダイレクトを待機
+    await page.waitForURL('**/', { timeout: 10000 });
 
     // ログイン成功後、Todoページにいることを確認
     await expect(page).toHaveURL('/');
@@ -34,8 +39,13 @@ test.describe('認証機能', () => {
     // ログインボタンをクリック
     await page.click('button[type="submit"]');
 
+    // エラーレスポンスを待機
+    await page.waitForResponse(response =>
+      response.url().includes('/auth/login') && response.status() === 401
+    );
+
     // エラーメッセージが表示されることを確認
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(2000);
 
     const errorElement = await page.locator('.error').count();
     if (errorElement > 0) {

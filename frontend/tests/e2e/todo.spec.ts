@@ -11,8 +11,13 @@ test.describe('Todo機能', () => {
     await page.fill('#password', 'password123');
     await page.click('button[type="submit"]');
 
-    // ログイン後の処理を待機
-    await page.waitForTimeout(10000);
+    // ログイン処理の完了を待機
+    await page.waitForResponse(response =>
+      response.url().includes('/auth/login') && response.status() === 200
+    );
+
+    // リダイレクトを待機
+    await page.waitForURL('**/', { timeout: 10000 });
 
     // ログイン成功後、Todoページにいることを確認
     await expect(page).toHaveURL('/');
@@ -27,7 +32,8 @@ test.describe('Todo機能', () => {
 
     // 新しいTodoのタイトルを入力
     await page.waitForSelector('input[placeholder*="新しいタスク"]');
-    await page.fill('input[placeholder*="新しいタスク"]', '新しいタスク');
+    const newTodoTitle = `新しいタスク_${Date.now()}`;
+    await page.fill('input[placeholder*="新しいタスク"]', newTodoTitle);
 
     // 追加ボタンをクリック
     await page.click('button[type="submit"]:has-text("追加")');
@@ -40,7 +46,7 @@ test.describe('Todo機能', () => {
     expect(newTodoCount).toBe(initialTodoCount + 1);
 
     // 新しく追加されたTodoが存在することを確認
-    await expect(page.locator('.todo-item:has-text("新しいタスク")')).toBeVisible();
+    await expect(page.locator(`.todo-item:has-text("${newTodoTitle}")`)).toBeVisible();
   });
 
   test('Todoを完了状態にできる', async ({ page }) => {
@@ -50,6 +56,9 @@ test.describe('Todo機能', () => {
 
     // 完了状態になったことを確認
     await page.waitForTimeout(1000);
+
+    // 完了状態の変更を待機
+    await page.waitForSelector('.todo-item.completed', { timeout: 10000 });
     await expect(page.locator('.todo-item.completed').first()).toBeVisible();
   });
 
@@ -69,18 +78,23 @@ test.describe('Todo機能', () => {
     // 複数のTodoを追加
     await page.waitForSelector('input[placeholder*="新しいタスク"]');
 
+    const timestamp = Date.now();
+    const todo1Title = `テストタスク1_${timestamp}`;
+    const todo2Title = `テストタスク2_${timestamp}`;
+    const todo3Title = `テストタスク3_${timestamp}`;
+
     // 最初のTodoを追加
-    await page.fill('input[placeholder*="新しいタスク"]', 'テストタスク1');
+    await page.fill('input[placeholder*="新しいタスク"]', todo1Title);
     await page.click('button[type="submit"]:has-text("追加")');
     await page.waitForTimeout(1000);
 
     // 2番目のTodoを追加
-    await page.fill('input[placeholder*="新しいタスク"]', 'テストタスク2');
+    await page.fill('input[placeholder*="新しいタスク"]', todo2Title);
     await page.click('button[type="submit"]:has-text("追加")');
     await page.waitForTimeout(1000);
 
     // 3番目のTodoを追加
-    await page.fill('input[placeholder*="新しいタスク"]', 'テストタスク3');
+    await page.fill('input[placeholder*="新しいタスク"]', todo3Title);
     await page.click('button[type="submit"]:has-text("追加")');
     await page.waitForTimeout(1000);
 
@@ -89,16 +103,19 @@ test.describe('Todo機能', () => {
     expect(finalTodoCount).toBe(initialTodoCount + 3);
 
     // 新しく追加されたTodoが存在することを確認
-    await expect(page.locator('.todo-item:has-text("テストタスク1")')).toBeVisible();
-    await expect(page.locator('.todo-item:has-text("テストタスク2")')).toBeVisible();
-    await expect(page.locator('.todo-item:has-text("テストタスク3")')).toBeVisible();
+    await expect(page.locator(`.todo-item:has-text("${todo1Title}")`)).toBeVisible();
+    await expect(page.locator(`.todo-item:has-text("${todo2Title}")`)).toBeVisible();
+    await expect(page.locator(`.todo-item:has-text("${todo3Title}")`)).toBeVisible();
 
     // 特定のTodoを完了状態にする
-    const newTodos = page.locator('.todo-item:has-text("テストタスク")');
-    await newTodos.nth(1).locator('.todo-checkbox').click();
+    await page.waitForSelector(`.todo-item:has-text("${todo2Title}")`);
+    await page.locator(`.todo-item:has-text("${todo2Title}") .todo-checkbox`).click();
 
     // 完了状態のTodoが1つあることを確認
     await page.waitForTimeout(1000);
-    await expect(page.locator('.todo-item.completed:has-text("テストタスク2")')).toBeVisible();
+
+    // 完了状態の変更を待機
+    await page.waitForSelector(`.todo-item.completed:has-text("${todo2Title}")`, { timeout: 10000 });
+    await expect(page.locator(`.todo-item.completed:has-text("${todo2Title}")`)).toBeVisible();
   });
 });

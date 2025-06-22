@@ -49,7 +49,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://backend-test:3001
+      VITE_API_URL: http://localhost:3002
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 10s
@@ -63,13 +63,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.test
     container_name: todo-playwright-test
+    network_mode: host
     depends_on:
       frontend-test:
         condition: service_healthy
       backend-test:
         condition: service_started
     environment:
-      PLAYWRIGHT_BASE_URL: http://frontend-test:3000
+      PLAYWRIGHT_BASE_URL: http://localhost:3003
     volumes:
       - ./frontend/tests:/app/tests
       - ./playwright-report:/app/playwright-report
