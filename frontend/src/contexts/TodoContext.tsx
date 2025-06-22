@@ -43,7 +43,7 @@ export const TodoProvider: React.FC<TodoProviderProps> = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/todos');
+      const response = await axios.get('/todos');
       setTodos(response.data.todos);
     } catch (error: any) {
       setError(error.response?.data?.error || 'タスクの取得に失敗しました');
@@ -55,7 +55,7 @@ export const TodoProvider: React.FC<TodoProviderProps> = ({ children }) => {
   const addTodo = useCallback(async (title: string) => {
     setError(null);
     try {
-      const response = await axios.post('/api/todos', { title });
+      const response = await axios.post('/todos', { title });
       setTodos(prev => [...prev, response.data.todo]);
     } catch (error: any) {
       setError(error.response?.data?.error || 'タスクの追加に失敗しました');
@@ -66,7 +66,7 @@ export const TodoProvider: React.FC<TodoProviderProps> = ({ children }) => {
   const updateTodo = useCallback(async (id: number, updates: Partial<Todo>) => {
     setError(null);
     try {
-      const response = await axios.put(`/api/todos/${id}`, updates);
+      const response = await axios.put(`/todos/${id}`, updates);
       setTodos(prev => prev.map(todo =>
         todo.id === id ? response.data.todo : todo
       ));
@@ -79,7 +79,7 @@ export const TodoProvider: React.FC<TodoProviderProps> = ({ children }) => {
   const deleteTodo = useCallback(async (id: number) => {
     setError(null);
     try {
-      await axios.delete(`/api/todos/${id}`);
+      await axios.delete(`/todos/${id}`);
       setTodos(prev => prev.filter(todo => todo.id !== id));
     } catch (error: any) {
       setError(error.response?.data?.error || 'タスクの削除に失敗しました');
