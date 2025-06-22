@@ -4,6 +4,9 @@
 
 set -e
 
+# AWS CLIのページャーを無効化
+export AWS_PAGER=""
+
 # 色付きの出力
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,7 +63,7 @@ check_prerequisites() {
     fi
 
     # AWS認証情報
-    if ! aws sts get-caller-identity &> /dev/null; then
+    if ! aws sts get-caller-identity --no-cli-pager &> /dev/null; then
         log_error "AWS認証情報が設定されていません"
         exit 1
     fi
@@ -82,14 +85,16 @@ cleanup_ecr() {
         log_info "フロントエンドECRリポジトリのイメージを削除しています..."
         aws ecr batch-delete-image \
             --repository-name "$(basename "$FRONTEND_ECR_URL")" \
-            --image-ids imageTag=latest 2>/dev/null || true
+            --image-ids imageTag=latest \
+            --no-cli-pager 2>/dev/null || true
     fi
 
     if [ -n "$BACKEND_ECR_URL" ]; then
         log_info "バックエンドECRリポジトリのイメージを削除しています..."
         aws ecr batch-delete-image \
             --repository-name "$(basename "$BACKEND_ECR_URL")" \
-            --image-ids imageTag=latest 2>/dev/null || true
+            --image-ids imageTag=latest \
+            --no-cli-pager 2>/dev/null || true
     fi
 }
 
@@ -98,8 +103,8 @@ cleanup_cloudwatch_logs() {
     log_info "CloudWatch Logsをクリーンアップしています..."
 
     # ロググループを削除
-    aws logs delete-log-group --log-group-name "/ecs/todo-app-frontend" 2>/dev/null || true
-    aws logs delete-log-group --log-group-name "/ecs/todo-app-backend" 2>/dev/null || true
+    aws logs delete-log-group --log-group-name "/ecs/todo-app-frontend" --no-cli-pager 2>/dev/null || true
+    aws logs delete-log-group --log-group-name "/ecs/todo-app-backend" --no-cli-pager 2>/dev/null || true
 }
 
 # Secrets Managerのクリーンアップ
@@ -107,8 +112,8 @@ cleanup_secrets() {
     log_info "Secrets Managerをクリーンアップしています..."
 
     # シークレットを削除
-    aws secretsmanager delete-secret --secret-id "todo-app-db-password" --force-delete-without-recovery 2>/dev/null || true
-    aws secretsmanager delete-secret --secret-id "todo-app-rails-master-key" --force-delete-without-recovery 2>/dev/null || true
+    aws secretsmanager delete-secret --secret-id "todo-app-db-password" --force-delete-without-recovery --no-cli-pager 2>/dev/null || true
+    aws secretsmanager delete-secret --secret-id "todo-app-rails-master-key" --force-delete-without-recovery --no-cli-pager 2>/dev/null || true
 }
 
 # インフラの削除
