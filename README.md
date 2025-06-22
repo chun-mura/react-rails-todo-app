@@ -177,6 +177,31 @@ docker-compose exec backend rails db:seed
 - フロントエンド: http://localhost:3000
 - バックエンドAPI: http://localhost:3001
 
+### データベース接続
+
+PostgreSQLデータベースに接続する方法：
+
+#### コンテナ内から接続
+```bash
+# PostgreSQLコンテナ内でpsqlを実行
+docker exec -it todo-postgres psql -U postgres -d todo_app_development
+```
+
+#### ホストマシンから接続
+```bash
+# psqlがインストールされている場合
+psql -h localhost -p 5432 -U postgres -d todo_app_development
+```
+
+#### 接続情報
+- **ホスト**: localhost
+- **ポート**: 5432
+- **ユーザー名**: postgres
+- **パスワード**: password（デフォルト）
+- **データベース名**: todo_app_development
+
+**注意**: ポート5433ではなく、5432を使用してください。
+
 ## AWSデプロイ
 
 このプロジェクトはAWSにデプロイするためのTerraform設定が含まれています。
