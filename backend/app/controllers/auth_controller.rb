@@ -5,7 +5,7 @@ class AuthController < ApplicationController
     user = User.new(user_params)
 
     if user.save
-      token = user.generate_jwt
+      token = user.generate_jwt_token
       render json: {
         token: token,
         user: { id: user.id, email: user.email }
@@ -19,7 +19,7 @@ class AuthController < ApplicationController
     user = User.find_by(email: params[:email])
 
     if user&.authenticate(params[:password])
-      token = user.generate_jwt
+      token = user.generate_jwt_token
       render json: {
         token: token,
         user: { id: user.id, email: user.email }

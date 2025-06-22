@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: todo-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: todo_app_development
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-todo_app_development}
     ports:
       - "5432:5432"
     volumes:
@@ -17,12 +17,12 @@ services:
     build: ./backend
     container_name: todo-backend
     environment:
-      DB_HOST: db
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      DB_PORT: 5432
-      RAILS_ENV: development
-      JWT_SECRET_KEY: your-secret-key
+      DB_HOST: ${DB_HOST:-db}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_PORT: ${DB_PORT:-5432}
+      RAILS_ENV: ${RAILS_ENV:-development}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key}
     depends_on:
       - db
     ports:

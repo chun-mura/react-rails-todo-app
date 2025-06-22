@@ -5,17 +5,23 @@ class ApplicationController < ActionController::API
     render json: { status: 'ok' }
   end
 
+  # ヘルスチェックエンドポイント
+  def health
+    render json: { status: 'ok', timestamp: Time.current.iso8601 }
+  end
+
   private
 
   def authenticate_user!
-    header = request.headers['Authorization']
-    token = header.split(' ').last if header
+    token = request.headers['Authorization']&.split(' ')&.last
+    return render json: { error: 'Token is missing' }, status: :unauthorized unless token
 
     begin
-      decoded = JWT.decode(token, ENV.fetch('JWT_SECRET_KEY', 'your-secret-key'), true, { algorithm: 'HS256' })
-      @current_user = User.find(decoded[0]['user_id'])
+      decoded = JWT.decode(token, ENV.fetch('JWT_SECRET_KEY'), true, { algorithm: 'HS256' })
+      user_id = decoded[0]['user_id']
+      @current_user = User.find(user_id)
     rescue JWT::DecodeError, ActiveRecord::RecordNotFound
-      render json: { error: 'Unauthorized' }, status: :unauthorized
+      render json: { error: 'Invalid token' }, status: :unauthorized
     end
   end
 

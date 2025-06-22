@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   # ヘルスチェック
-  get 'health', to: 'application#health_check'
+  get 'health', to: 'application#health'
 
   # APIプレフィックスを追加
   scope '/api' do

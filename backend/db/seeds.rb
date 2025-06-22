@@ -18,7 +18,7 @@ end
 puts "ユーザー: (#{user.email}) (ID: #{user.id})"
 
 # JWTトークンを生成
-token = user.generate_jwt
+token = user.generate_jwt_token
 puts "認証トークン: #{token}"
 
 # 既存のTodoを削除（クリーンアップ）

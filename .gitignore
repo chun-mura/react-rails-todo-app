@@ -1,0 +1,69 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Secrets
+terraform/terraform.tfvars
+terraform/secrets/
+*.key
+*.pem
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# Additional security patterns
+*.p12
+*.pfx
+*.crt
+*.csr
+*.pem
+*.key
+*.keystore
+*.jks
+*.p8
+*.p12
+*.pfx
+*.crt
+*.csr
+*.pem
+*.key
+*.keystore
+*.jks
+*.p8
+secrets/
+.secrets/
+config/secrets/
+*.secret
+*.conf
+config/*.conf
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore

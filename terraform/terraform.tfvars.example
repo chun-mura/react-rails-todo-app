@@ -1,0 +1,31 @@
+# AWS設定
+aws_region = "ap-northeast-1"
+
+# プロジェクト設定
+project_name = "todo-app"
+environment  = "production"
+
+# ドメイン設定
+domain_name = "todo-app.example.com"
+
+# データベース設定
+db_username = "postgres"
+db_name     = "todo_app_production"
+
+# シークレット設定
+# 以下の値は自動的にAWS Parameter Storeから読み込まれます
+# 手動で設定する必要はありません
+# jwt_secret_key   = "自動でParameter Storeから読み込み"
+# rails_master_key = "自動でParameter Storeから読み込み"
+
+# イメージタグ
+frontend_image_tag = "latest"
+backend_image_tag  = "latest"
+
+# シークレット管理の推奨方法:
+# 1. AWS Systems Manager Parameter Store（推奨）
+#    ./scripts/setup-secrets.sh --method parameter-store --force
+# 2. 環境変数を使用
+#    ./scripts/setup-secrets.sh --method env
+# 3. ローカルファイルを使用
+#    ./scripts/setup-secrets.sh --method local

@@ -3,12 +3,12 @@ class User < ApplicationRecord
   has_many :todos, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
+  validates :password, presence: true, length: { minimum: 6 }, on: :create
 
-  def generate_jwt
+  def generate_jwt_token
     JWT.encode(
-      { user_id: id, exp: 24.hours.from_now.to_i },
-      ENV.fetch('JWT_SECRET_KEY', 'your-secret-key'),
+      { user_id: id, email: email, exp: 24.hours.from_now.to_i },
+      ENV.fetch('JWT_SECRET_KEY'),
       'HS256'
     )
   end
