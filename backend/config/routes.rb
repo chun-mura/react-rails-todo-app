@@ -13,6 +13,9 @@ Rails.application.routes.draw do
 
   # APIプレフィックスを追加
   scope '/api' do
+    # ヘルスチェック
+    get 'health', to: 'application#health'
+
     # 認証
     post 'auth/register', to: 'auth#register'
     post 'auth/login', to: 'auth#login'

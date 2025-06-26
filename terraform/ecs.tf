@@ -67,6 +67,10 @@ resource "aws_ecs_task_definition" "frontend" {
         {
           name  = "NODE_ENV"
           value = "production"
+        },
+        {
+          name  = "VITE_API_URL"
+          value = "https://${aws_lb.main.dns_name}"
         }
       ]
     }
@@ -108,6 +112,14 @@ resource "aws_ecs_task_definition" "backend" {
         }
       }
 
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 120
+      }
+
       environment = [
         {
           name  = "RAILS_ENV"
@@ -128,10 +140,6 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name  = "DB_PORT"
           value = "5432"
-        },
-        {
-          name  = "JWT_SECRET_KEY"
-          value = local.jwt_secret_key
         }
       ]
 
@@ -142,9 +150,17 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name      = "RAILS_MASTER_KEY"
-          valueFrom = "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}-rails-master-key"
+          valueFrom = aws_secretsmanager_secret.rails_master_key.arn
+        },
+        {
+          name      = "JWT_SECRET_KEY"
+          valueFrom = aws_secretsmanager_secret.jwt_secret_key.arn
         }
       ]
+
+      essential = true
+      startTimeout = 600
+      stopTimeout = 30
     }
   ])
 
@@ -199,6 +215,11 @@ resource "aws_ecs_service" "backend" {
     container_name   = "backend"
     container_port   = 3001
   }
+
+  health_check_grace_period_seconds = 60
+
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 50
 
   depends_on = [aws_lb_listener.https_frontend]
 

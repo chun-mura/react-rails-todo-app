@@ -1,6 +1,6 @@
 # Secrets Manager - データベースパスワード
 resource "aws_secretsmanager_secret" "db_password" {
-  name = "${var.project_name}-db-password"
+  name = "${var.project_name}-db-password-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {
@@ -8,10 +8,30 @@ resource "aws_secretsmanager_secret_version" "db_password" {
   secret_string = random_password.db_password.result
 }
 
+# Secrets Manager - RDS Proxy認証用
+resource "aws_secretsmanager_secret" "rds_proxy_auth" {
+  name = "${var.project_name}-rds-proxy-auth-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
+}
+
+resource "aws_secretsmanager_secret_version" "rds_proxy_auth" {
+  secret_id     = aws_secretsmanager_secret.rds_proxy_auth.id
+  secret_string = jsonencode({
+    username = var.db_username
+    password = random_password.db_password.result
+  })
+}
+
 # ランダムパスワード生成
 resource "random_password" "db_password" {
   length  = 16
-  special = false
+  special = true
+  min_lower = 1
+  min_upper = 1
+  min_numeric = 1
+  min_special = 1
+  # RDS制限: '/', '@', '"', ' ' は使用不可
+  # URLエンコードの問題も避けるため、安全な特殊文字のみ使用
+  override_special = "!#$%&*()_+-=[]{}|;:,.<>?"
 }
 
 # Aurora PostgreSQL クラスター
@@ -22,8 +42,9 @@ resource "aws_rds_cluster" "main" {
   database_name         = var.db_name
   master_username       = var.db_username
   master_password       = random_password.db_password.result
-  skip_final_snapshot   = true
-  deletion_protection   = false
+  skip_final_snapshot   = false
+  final_snapshot_identifier = "${var.project_name}-final-snapshot-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
+  deletion_protection   = true
 
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -59,13 +80,13 @@ resource "aws_db_proxy" "main" {
   idle_client_timeout    = 1800
   require_tls            = true
   role_arn               = aws_iam_role.rds_proxy.arn
-  vpc_security_group_ids = [aws_security_group.rds.id]
+  vpc_security_group_ids = [aws_security_group.rds_proxy.id]
   vpc_subnet_ids         = aws_subnet.private[*].id
 
   auth {
     auth_scheme = "SECRETS"
     iam_auth    = "DISABLED"
-    secret_arn  = aws_secretsmanager_secret.db_password.arn
+    secret_arn  = aws_secretsmanager_secret.rds_proxy_auth.arn
   }
 
   tags = {
@@ -121,7 +142,10 @@ resource "aws_iam_role_policy" "rds_proxy" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = aws_secretsmanager_secret.db_password.arn
+        Resource = [
+          aws_secretsmanager_secret.db_password.arn,
+          aws_secretsmanager_secret.rds_proxy_auth.arn
+        ]
       }
     ]
   })

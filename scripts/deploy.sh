@@ -164,17 +164,23 @@ build_and_push_images() {
     aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin "$FRONTEND_ECR_URL"
     aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin "$BACKEND_ECR_URL"
 
+    # Buildxビルダーを作成（存在しない場合）
+    log_info "Docker Buildxビルダーを設定中..."
+    docker buildx create --name multiarch-builder --use 2>/dev/null || docker buildx use multiarch-builder
+
     # フロントエンドのビルドとプッシュ
     log_info "フロントエンドイメージをビルドしています..."
     cd "$FRONTEND_DIR"
-    docker build -t "$FRONTEND_ECR_URL:latest" .
-    docker push "$FRONTEND_ECR_URL:latest"
+    docker buildx build --platform linux/amd64 \
+        -t "$FRONTEND_ECR_URL:latest" \
+        --push .
 
     # バックエンドのビルドとプッシュ
     log_info "バックエンドイメージをビルドしています..."
     cd "$BACKEND_DIR"
-    docker build -t "$BACKEND_ECR_URL:latest" .
-    docker push "$BACKEND_ECR_URL:latest"
+    docker buildx build --platform linux/amd64 \
+        -t "$BACKEND_ECR_URL:latest" \
+        --push .
 
     log_info "イメージビルドとプッシュ完了"
 }

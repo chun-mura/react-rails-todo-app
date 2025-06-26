@@ -98,7 +98,7 @@ resource "aws_cloudfront_distribution" "main" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 
-  aliases = ["www.${var.domain_name}"]
+  aliases = [var.domain_name]
 
   origin {
     domain_name = aws_lb.main.dns_name
@@ -309,7 +309,7 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.main.arn
+    acm_certificate_arn      = aws_acm_certificate.cloudfront.arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

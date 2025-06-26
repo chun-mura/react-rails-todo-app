@@ -30,6 +30,20 @@ provider "aws" {
   }
 }
 
+# us-east-1プロバイダー (CloudFront用)
+provider "aws" {
+  alias  = "us-east-1"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project     = var.project_name
+      Environment = var.environment
+      ManagedBy   = "terraform"
+    }
+  }
+}
+
 # データソース
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}

@@ -12,13 +12,16 @@ services:
       - db-data:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    platform: linux/amd64
+    build:
+      context: ./backend
     container_name: todo-backend
     environment:
       DB_HOST: ${DB_HOST:-db}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-password}
       DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-todo_app_development}
       RAILS_ENV: ${RAILS_ENV:-development}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key}
     depends_on:
@@ -29,6 +32,7 @@ services:
       - ./backend:/app
 
   frontend:
+    platform: linux/amd64
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
