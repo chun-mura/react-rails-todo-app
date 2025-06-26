@@ -45,6 +45,7 @@ resource "aws_rds_cluster" "main" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.project_name}-final-snapshot-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
   deletion_protection       = true
+  # apply_immediately         = true # アンコメントで即時反映
 
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -66,6 +67,7 @@ resource "aws_rds_cluster_instance" "main" {
   instance_class     = "db.t4g.medium"
   engine             = aws_rds_cluster.main.engine
   engine_version     = aws_rds_cluster.main.engine_version
+  # apply_immediately  = true # アンコメントで即時反映
 
   tags = {
     Name = "${var.project_name}-aurora-instance-${count.index + 1}"
