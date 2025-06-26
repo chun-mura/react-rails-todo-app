@@ -58,7 +58,7 @@ resource "aws_internet_gateway" "main" {
 
 # NATゲートウェイ用のElastic IP
 resource "aws_eip" "nat" {
-  count = 2
+  count  = 2
   domain = "vpc"
 
   tags = {

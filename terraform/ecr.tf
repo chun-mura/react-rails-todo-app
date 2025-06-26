@@ -36,9 +36,9 @@ resource "aws_ecr_lifecycle_policy" "frontend" {
         rulePriority = 1
         description  = "Keep last 30 images"
         selection = {
-          tagStatus     = "untagged"
-          countType     = "imageCountMoreThan"
-          countNumber   = 30
+          tagStatus   = "untagged"
+          countType   = "imageCountMoreThan"
+          countNumber = 30
         }
         action = {
           type = "expire"
@@ -58,9 +58,9 @@ resource "aws_ecr_lifecycle_policy" "backend" {
         rulePriority = 1
         description  = "Keep last 30 images"
         selection = {
-          tagStatus     = "untagged"
-          countType     = "imageCountMoreThan"
-          countNumber   = 30
+          tagStatus   = "untagged"
+          countType   = "imageCountMoreThan"
+          countNumber = 30
         }
         action = {
           type = "expire"

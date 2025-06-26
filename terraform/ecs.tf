@@ -158,9 +158,9 @@ resource "aws_ecs_task_definition" "backend" {
         }
       ]
 
-      essential = true
+      essential    = true
       startTimeout = 600
-      stopTimeout = 30
+      stopTimeout  = 30
     }
   ])
 
@@ -178,8 +178,8 @@ resource "aws_ecs_service" "frontend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [aws_security_group.ecs.id]
     subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = false
   }
 
@@ -189,7 +189,11 @@ resource "aws_ecs_service" "frontend" {
     container_port   = 80
   }
 
-  depends_on = [aws_lb_listener.https_frontend]
+  depends_on = [aws_lb_listener.http]
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
 
   tags = {
     Name = "${var.project_name}-frontend-service"
@@ -205,8 +209,8 @@ resource "aws_ecs_service" "backend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [aws_security_group.ecs.id]
     subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = false
   }
 
@@ -216,12 +220,16 @@ resource "aws_ecs_service" "backend" {
     container_port   = 3001
   }
 
+  depends_on = [aws_lb_listener.http]
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
   health_check_grace_period_seconds = 60
 
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
-
-  depends_on = [aws_lb_listener.https_frontend]
 
   tags = {
     Name = "${var.project_name}-backend-service"

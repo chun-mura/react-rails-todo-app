@@ -69,12 +69,12 @@ variable "backend_image_tag" {
 locals {
   jwt_secret_key = var.jwt_secret_key != null ? var.jwt_secret_key : (
     try(nonsensitive(data.aws_ssm_parameter.jwt_secret_key[0].value),
-        "dummy-jwt-secret-key-for-development")
+    "dummy-jwt-secret-key-for-development")
   )
 
   rails_master_key = var.rails_master_key != null ? var.rails_master_key : (
     try(nonsensitive(data.aws_ssm_parameter.rails_master_key[0].value),
-        "dummy-rails-master-key-for-development")
+    "dummy-rails-master-key-for-development")
   )
 }
 

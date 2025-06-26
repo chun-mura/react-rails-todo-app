@@ -23,10 +23,10 @@ resource "aws_acm_certificate" "main" {
 
 # ACM証明書 (CloudFront用 - us-east-1)
 resource "aws_acm_certificate" "cloudfront" {
-  provider = aws.us-east-1
-  domain_name       = var.domain_name
+  provider                  = aws.us-east-1
+  domain_name               = var.domain_name
   subject_alternative_names = ["*.${var.domain_name}"]
-  validation_method = "DNS"
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -81,13 +81,13 @@ resource "aws_acm_certificate_validation" "main" {
 
 # 証明書検証 (CloudFront用)
 resource "aws_acm_certificate_validation" "cloudfront" {
-  provider = aws.us-east-1
+  provider                = aws.us-east-1
   certificate_arn         = aws_acm_certificate.cloudfront.arn
   validation_record_fqdns = [for record in aws_route53_record.cloudfront_cert_validation : record.fqdn]
 }
 
 # CloudFront用のAレコード
-resource "aws_route53_record" "cloudfront" {
+resource "aws_route53_record" "alb" {
   zone_id = aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"
@@ -97,4 +97,6 @@ resource "aws_route53_record" "cloudfront" {
     zone_id                = aws_cloudfront_distribution.main.hosted_zone_id
     evaluate_target_health = false
   }
+
+  depends_on = [aws_cloudfront_distribution.main]
 }

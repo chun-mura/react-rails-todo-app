@@ -15,10 +15,10 @@ resource "aws_lb" "main" {
 
 # ターゲットグループ - フロントエンド
 resource "aws_lb_target_group" "frontend" {
-  name     = "${var.project_name}-frontend-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  name        = "${var.project_name}-frontend-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
@@ -40,10 +40,10 @@ resource "aws_lb_target_group" "frontend" {
 
 # ターゲットグループ - バックエンド
 resource "aws_lb_target_group" "backend" {
-  name     = "${var.project_name}-backend-tg"
-  port     = 3001
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  name        = "${var.project_name}-backend-tg"
+  port        = 3001
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
@@ -63,20 +63,15 @@ resource "aws_lb_target_group" "backend" {
   }
 }
 
-# リスナー - HTTP
+# リスナー - HTTP (CloudFront用)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
   }
 }
 
@@ -94,8 +89,25 @@ resource "aws_lb_listener" "https_frontend" {
   }
 }
 
-# リスナールール - API
-resource "aws_lb_listener_rule" "api" {
+# リスナールール - API (HTTP)
+resource "aws_lb_listener_rule" "api_http" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/*", "/health"]
+    }
+  }
+}
+
+# リスナールール - API (HTTPS)
+resource "aws_lb_listener_rule" "api_https" {
   listener_arn = aws_lb_listener.https_frontend.arn
   priority     = 100
 

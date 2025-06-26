@@ -14,7 +14,7 @@ resource "aws_secretsmanager_secret" "rds_proxy_auth" {
 }
 
 resource "aws_secretsmanager_secret_version" "rds_proxy_auth" {
-  secret_id     = aws_secretsmanager_secret.rds_proxy_auth.id
+  secret_id = aws_secretsmanager_secret.rds_proxy_auth.id
   secret_string = jsonencode({
     username = var.db_username
     password = random_password.db_password.result
@@ -23,10 +23,10 @@ resource "aws_secretsmanager_secret_version" "rds_proxy_auth" {
 
 # ランダムパスワード生成
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
-  min_lower = 1
-  min_upper = 1
+  length      = 16
+  special     = true
+  min_lower   = 1
+  min_upper   = 1
   min_numeric = 1
   min_special = 1
   # RDS制限: '/', '@', '"', ' ' は使用不可
@@ -36,21 +36,21 @@ resource "random_password" "db_password" {
 
 # Aurora PostgreSQL クラスター
 resource "aws_rds_cluster" "main" {
-  cluster_identifier     = "${var.project_name}-aurora-cluster"
-  engine                = "aurora-postgresql"
-  engine_version        = "15.4"
-  database_name         = var.db_name
-  master_username       = var.db_username
-  master_password       = random_password.db_password.result
-  skip_final_snapshot   = false
+  cluster_identifier        = "${var.project_name}-aurora-cluster"
+  engine                    = "aurora-postgresql"
+  engine_version            = "15.4"
+  database_name             = var.db_name
+  master_username           = var.db_username
+  master_password           = random_password.db_password.result
+  skip_final_snapshot       = false
   final_snapshot_identifier = "${var.project_name}-final-snapshot-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
-  deletion_protection   = true
+  deletion_protection       = true
 
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
 
-  backup_retention_period = 7
-  preferred_backup_window = "03:00-04:00"
+  backup_retention_period      = 7
+  preferred_backup_window      = "03:00-04:00"
   preferred_maintenance_window = "sun:04:00-sun:05:00"
 
   tags = {
@@ -60,12 +60,12 @@ resource "aws_rds_cluster" "main" {
 
 # Aurora PostgreSQL インスタンス
 resource "aws_rds_cluster_instance" "main" {
-  count               = 2
-  identifier          = "${var.project_name}-aurora-instance-${count.index + 1}"
-  cluster_identifier  = aws_rds_cluster.main.id
-  instance_class      = "db.r6g.large"
-  engine              = aws_rds_cluster.main.engine
-  engine_version      = aws_rds_cluster.main.engine_version
+  count              = 2
+  identifier         = "${var.project_name}-aurora-instance-${count.index + 1}"
+  cluster_identifier = aws_rds_cluster.main.id
+  instance_class     = "db.t4g.medium"
+  engine             = aws_rds_cluster.main.engine
+  engine_version     = aws_rds_cluster.main.engine_version
 
   tags = {
     Name = "${var.project_name}-aurora-instance-${count.index + 1}"
