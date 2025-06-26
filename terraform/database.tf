@@ -38,13 +38,13 @@ resource "random_password" "db_password" {
 resource "aws_rds_cluster" "main" {
   cluster_identifier        = "${var.project_name}-aurora-cluster"
   engine                    = "aurora-postgresql"
-  engine_version            = "15.4"
+  engine_version            = "15.10"
   database_name             = var.db_name
   master_username           = var.db_username
   master_password           = random_password.db_password.result
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.project_name}-final-snapshot-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
-  deletion_protection       = true
+  deletion_protection       = true # 削除する場合はfalse
   # apply_immediately         = true # アンコメントで即時反映
 
   vpc_security_group_ids = [aws_security_group.rds.id]
